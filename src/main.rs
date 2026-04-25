@@ -56,7 +56,7 @@ fn get_password_option(args: &mut env::Args) -> PasswordConfig {
         },
         None => {
             println!(
-                "{} \nusage: pwdgen <option> <length>; Options: {}",
+                "{} \nusage: pwdgen <option> <length> [s | silent]; Options: {}",
                 "warn: No options given, defaulting to all.".yellow(),
                 "lower, upper, numeric, all\n".blue()
             );
