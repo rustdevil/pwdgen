@@ -16,6 +16,16 @@ struct PasswordConfig {
 
 fn main() {
     let mut args = env::args();
+    let args_vec: Vec<String> = env::args().collect(); // Vector so silent mode check doesn't consume arguments
+
+    // Silent mode
+    if let Some(arg) = args_vec.get(3) {
+        if arg == "s" || arg == "silent" {
+            println!("{}", generate_password(get_password_option(&mut args)));
+
+            process::exit(0);
+        }
+    }
 
     println!("{} - very bad password generator\n", "pwdgen".blue());
 
