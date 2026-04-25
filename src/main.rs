@@ -17,7 +17,7 @@ fn main() {
 
     println!(
         "-> {}: {}",
-        "Token".blue(),
+        "pass".blue(),
         generate_password(get_password_option(&mut args)).yellow()
     )
 }
