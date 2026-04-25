@@ -1,13 +1,17 @@
 use colored::Colorize;
 use rand::prelude::IndexedRandom;
-use std::env;
-use std::process;
+use std::{env, process};
 
-enum PasswordOption {
+enum PwdOption {
     Lower,
     Upper,
     Numeric,
     All,
+}
+
+struct PasswordConfig {
+    option: PwdOption,
+    length: u32,
 }
 
 fn main() {
@@ -22,33 +26,58 @@ fn main() {
     )
 }
 
-fn get_password_option(args: &mut env::Args) -> PasswordOption {
+fn get_password_option(args: &mut env::Args) -> PasswordConfig {
+    let mut config: PasswordConfig = PasswordConfig {
+        option: PwdOption::All,
+        length: 16,
+    };
+
+    // Get the option
     match args.nth(1) {
         Some(arg) => match arg.as_str() {
-            "lower" => PasswordOption::Lower,
-            "upper" => PasswordOption::Upper,
-            "numeric" => PasswordOption::Numeric,
-            "all" => PasswordOption::All,
+            "lower" => config.option = PwdOption::Lower,
+            "upper" => config.option = PwdOption::Upper,
+            "numeric" => config.option = PwdOption::Numeric,
+            "all" => config.option = PwdOption::All,
             &_ => {
-                eprintln!(
-                    "{}",
-                    format!("-> ERROR: {arg} is not a password option").red()
-                );
+                eprintln!("{}", format!("ERROR: {arg} is not a password option").red());
                 process::exit(1);
             }
         },
         None => {
             println!(
-                "{} \nusage: pwdgen <option>; Options: {}",
+                "{} \nusage: pwdgen <option> <length>; Options: {}",
                 "warn: No options given, defaulting to all.".yellow(),
                 "lower, upper, numeric, all\n".blue()
             );
-            PasswordOption::All
         }
     }
+
+    match args.next() {
+        Some(arg) => {
+            config.length = match arg.parse() {
+                Ok(length) => length,
+                Err(_) => {
+                    eprintln!(
+                        "{}",
+                        "ERROR: failed to parse password length, is it a number?".red()
+                    );
+                    process::exit(1);
+                }
+            }
+        }
+        None => {
+            println!(
+                "{}",
+                "warn: No password length specified, defaulting to 16.".yellow()
+            );
+        }
+    }
+
+    config
 }
 
-fn generate_password(option: PasswordOption) -> String {
+fn generate_password(config: PasswordConfig) -> String {
     let mut rng = rand::rng();
 
     let lowercase: Vec<char> = ('a'..='z').collect();
@@ -63,9 +92,9 @@ fn generate_password(option: PasswordOption) -> String {
     .concat();
 
     let mut password: String = "".into();
-    match option {
-        PasswordOption::Lower => {
-            for _n in 1..=64 {
+    match config.option {
+        PwdOption::Lower => {
+            for _n in 1..=config.length {
                 password.push(match lowercase.choose(&mut rng) {
                     Some(char) => *char,
                     None => panic!("bitch idk"),
@@ -73,8 +102,8 @@ fn generate_password(option: PasswordOption) -> String {
             }
             password
         }
-        PasswordOption::Upper => {
-            for _n in 1..=64 {
+        PwdOption::Upper => {
+            for _n in 1..=config.length {
                 password.push(match uppercase.choose(&mut rng) {
                     Some(char) => *char,
                     None => panic!("bitch idk"),
@@ -82,8 +111,8 @@ fn generate_password(option: PasswordOption) -> String {
             }
             password
         }
-        PasswordOption::Numeric => {
-            for _n in 1..=64 {
+        PwdOption::Numeric => {
+            for _n in 1..=config.length {
                 password.push(match numeric.choose(&mut rng) {
                     Some(char) => *char,
                     None => panic!("bitch idk"),
@@ -91,8 +120,8 @@ fn generate_password(option: PasswordOption) -> String {
             }
             password
         }
-        PasswordOption::All => {
-            for _n in 1..=64 {
+        PwdOption::All => {
+            for _n in 1..=config.length {
                 password.push(match all.choose(&mut rng) {
                     Some(char) => *char,
                     None => panic!("bitch idk"),
